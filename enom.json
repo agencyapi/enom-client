@@ -1,0 +1,21 @@
+{
+  "axiosOptions": {
+    "url": "/interface.asp",
+    "baseurl" : "https://reseller.enom.com",
+    "method": "get",
+    "headers": {
+      "User-Agent": "AgencyAPI Enom Client"
+    },
+    "params": {
+
+    },
+    "responseType": "text",
+    "responseEncoding": "utf8",
+    "maxRedirects": "0"
+  },
+  "routes": {
+    "domains": {
+      "list": "GetAllDomains"
+    }
+  }
+}
