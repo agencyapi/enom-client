@@ -1,9 +1,22 @@
 'use strict'
 const {createClient} = require("./enom");
+const {log} = require("./logger");
 const server = require('fastify')()
 
 // Require library to exit fastify process, gracefully (if possible)
 const closeWithGrace = require('close-with-grace')
+
+server.register(require('middie'));
+server.addHook('onRequest', async (req, reply) => {
+    log('info', 'request-incoming', {
+        path: req.url, method: req.method, ip: req.ip,
+        ua: req.headers['user-agent'] || null });
+})
+server.setErrorHandler(async (error, req) => {
+    log('error', 'request-failure', {stack: error.stack,
+        path: req.url, method: req.method, });
+    return { error: error.message };
+})
 
 const HOST = process.env.HOST || '127.0.0.1';
 const PORT = process.env.PORT || 4000;
@@ -17,7 +30,7 @@ server.register(domainService)
 server.register(healthCheckService)
 
 // delay is the number of milliseconds for the graceful close to finish
-const closeListeners = closeWithGrace({ delay: 500 }, async function ({ signal, err, manual }) {
+const closeListeners = closeWithGrace({delay: 500}, async function ({signal, err, manual}) {
     if (err) {
         server.log.error(err)
     }

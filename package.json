@@ -13,6 +13,7 @@
   "dependencies": {
     "axios": "^0.27.2",
     "close-with-grace": "^1.1.0",
-    "fastify": "^3.24.1"
+    "fastify": "^3.24.1",
+    "middie": "^6.0.0"
   }
 }
