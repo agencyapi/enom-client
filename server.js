@@ -12,7 +12,9 @@ console.log(`Starting as pid=${process.pid}`);
 console.log(`Enom API user=${process.env.ENOM_USER}`)
 
 const domainService = require('./domains.js')
+const healthCheckService = require('./healthcheck.js')
 server.register(domainService)
+server.register(healthCheckService)
 
 // delay is the number of milliseconds for the graceful close to finish
 const closeListeners = closeWithGrace({ delay: 500 }, async function ({ signal, err, manual }) {
