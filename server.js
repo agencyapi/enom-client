@@ -1,5 +1,4 @@
 'use strict'
-const {createClient} = require("./enom");
 const {log} = require("./logger");
 const server = require('fastify')()
 
@@ -7,7 +6,7 @@ const server = require('fastify')()
 const closeWithGrace = require('close-with-grace')
 
 server.register(require('middie'));
-server.addHook('onRequest', async (req, reply) => {
+server.addHook('onRequest', async (req) => {
     log('info', 'request-incoming', {
         path: req.url, method: req.method, ip: req.ip,
         ua: req.headers['user-agent'] || null });
@@ -30,9 +29,9 @@ server.register(domainService)
 server.register(healthCheckService)
 
 // delay is the number of milliseconds for the graceful close to finish
-const closeListeners = closeWithGrace({delay: 500}, async function ({signal, err, manual}) {
+const closeListeners = closeWithGrace({delay: 500}, async function ({err}) {
     if (err) {
-        server.log.error(err)
+        log("error", err)
     }
     await server.close()
 })
@@ -45,12 +44,19 @@ server.addHook('onClose', async (instance, done) => {
 // Run the server!
 const start = async () => {
     try {
-        await server.listen(PORT, HOST, () => {
-            console.log(`Listing at http://${HOST}:${PORT}`);
+        await server.listen(PORT, HOST, (err) => {
+            if (err) {
+                log("error", err)
+            } else {
+            // noinspection HttpUrlsUsage
+                log("info", `Listing at http://${HOST}:${PORT}`);
+            }
         })
     } catch (err) {
-        server.log.error(err)
+        log("error", err)
         process.exit(1)
     }
 }
-start()
+start().then(() => {
+    // do nothing
+})
