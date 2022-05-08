@@ -40,8 +40,8 @@ jobs:
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v0'
         with:
-          workload_identity_provider: 'projects/216649641467/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
-          service_account: 'github@agencyapi.iam.gserviceaccount.com'
+          workload_identity_provider: ${{ secrets.GCP_WIP }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
           token_format: 'access_token'
           access_token_lifetime: '600s' # 10 minutes should be long enough
           create_credentials_file: false
@@ -54,6 +54,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
         env:
