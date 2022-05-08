@@ -4,7 +4,7 @@ name: Publish
 
 env:
   IMAGE: ${{ github.repository }}
-  GCP_PROJECT: "agencyapi"
+  PROJECT: "agencyapi"
   REGISTRY: 'europe-docker.pkg.dev'
 
 on:
@@ -26,7 +26,7 @@ jobs:
         with:
           # list of Docker images to use as base name for tags
           images: |
-            ${{ env.REGISTRY }}/${{ env.GCP_PROJECT }}/containers/${{ env.IMAGE}}
+            ${{ env.REGISTRY }}/${{ env.PROJECT }}/containers/${{ env.IMAGE}}
           # generate Docker tags based on the following events/attributes
 #          tags: |
 #            type=schedule
