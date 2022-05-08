@@ -1,0 +1,60 @@
+# This workflow will build a docker image and publish it to the registry
+
+name: Publish
+
+env:
+  IMAGE: ${{ github.repository }}
+  GCP_PROJECT: "agencyapi"
+  REGISTRY: 'europe-docker.pkg.dev'
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      - uses: 'actions/checkout@v3'
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            ${{ env.REGISTRY }}/${{ env.GCP_PROJECT }}/containers/${{ env.IMAGE}}
+          # generate Docker tags based on the following events/attributes
+#          tags: |
+#            type=schedule
+#            type=ref,event=branch
+#            type=ref,event=pr
+#            type=semver,pattern={{version}}
+#            type=semver,pattern={{major}}.{{minor}}
+#            type=semver,pattern={{major}}
+#            type=sha
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          workload_identity_provider: 'projects/216649641467/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'github@agencyapi.iam.gserviceaccount.com'
+          token_format: 'access_token'
+          access_token_lifetime: '600s' # 10 minutes should be long enough
+          create_credentials_file: false
+      - uses: 'docker/login-action@v1'
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: 'oauth2accesstoken'
+          password: ${{ steps.auth.outputs.access_token }}
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+        env:
+          IMAGE_TAG: ${{ steps.meta.outputs.tags }}
