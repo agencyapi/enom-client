@@ -56,10 +56,7 @@ E.callApi = function(command, callback) {
                     return
                 }
 
-                const commandResponse = result['interface-response'][command];
-
-                console.log(`extracted data ${ JSON.stringify(commandResponse) }`)
-
+                const commandResponse = result['interface-response'][command][0];
                 callback(null, commandResponse)
             });
         })
