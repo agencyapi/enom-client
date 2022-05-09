@@ -1,5 +1,6 @@
 'use strict'
 const axios = require('axios'),
+    xml2js = require('xml2js'),
     con = require('./enom.json');
 
 const axiosInstance = axios.create(con.axiosOptions);
@@ -13,22 +14,63 @@ function EnomClient(id, pass) {
 
 const E = EnomClient.prototype;
 
-E.domains = function (callback) {
+E.callApi = function(command, callback) {
     axiosInstance
         .get(this.url, {
-            params: this.commandParameters(con.routes.domains.list)
+            params: this.commandParameters(command)
         })
         .then(response => {
             const status = response.status
-            //TODO: implement status handling
-            console.log(`status code ${status}`)
+            if (status !== 200) {
+                console.log(`API HTTP response status code ${status}`)
+                let errors = { "error" : "API call failed", "errorCode" : 500}
+                callback(errors, null)
+                return
+            }
+
             const data = response.data
-            callback(null, data)
+            const parser = new xml2js.Parser();
+            parser.parseString(data, function(err,result){
+                if (err) {
+                    callback(err, null)
+                    return
+                }
+
+                //Extract the value from the data element
+                const errorCount = parseInt(result['interface-response']['ErrCount']);
+
+                if (errorCount > 0) {
+                    const errorData = result['interface-response'].errors[0];
+                    const firstError = errorData['Err1'][0];
+                    let errors = { "error": firstError }
+
+                    if (firstError === 'Bad User name or Password') {
+                        errors['errorCode'] = 403
+                    }
+
+                    for (let index = 2; index <= errorCount; index++) {
+                        errors['error' + index] = errorData['Err' + index][0]
+                    }
+                    console.log(`API call returned ${errorCount} errors: ${ JSON.stringify(errors) }`)
+                    callback(errors, null)
+                    return
+                }
+
+                const commandResponse = result['interface-response'][command];
+
+                console.log(`extracted data ${ JSON.stringify(commandResponse) }`)
+
+                callback(null, commandResponse)
+            });
         })
         .catch(error => {
             console.log(error)
             callback(error, null)
         })
+}
+
+E.domains = function (callback) {
+    this.callApi(con.routes.domains.list, callback)
 }
 
 E.commandParameters = function (command) {
