@@ -48,6 +48,10 @@ E.callApi = function(command, callback) {
                         errors['errorCode'] = 403
                     }
 
+                    if (firstError.contains('User not permitted from this IP address')) {
+                        errors['errorCode'] = 403
+                    }
+
                     for (let index = 2; index <= errorCount; index++) {
                         errors['error' + index] = errorData['Err' + index][0]
                     }
