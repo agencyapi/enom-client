@@ -48,7 +48,7 @@ E.callApi = function(command, callback) {
                         errors['errorCode'] = 403
                     }
 
-                    if (firstError.contains('User not permitted from this IP address')) {
+                    if (firstError.startsWith('User not permitted from this IP address')) {
                         errors['errorCode'] = 403
                     }
 
