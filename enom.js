@@ -79,6 +79,10 @@ E.domains = function (callback) {
     this.callApi(con.routes.domains.list, callback)
 }
 
+E.prices = function (callback) {
+    this.callApi(con.routes.prices.list, callback)
+}
+
 E.checkLogin = function (callback) {
     axiosInstance
         .get(this.url, {
