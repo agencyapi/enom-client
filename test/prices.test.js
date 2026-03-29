@@ -1,14 +1,12 @@
 'use strict'
 
-const { test, before, after } = require('node:test');
-const assert = require('node:assert/strict');
 const { createMockServer } = require('./helpers/mock-enom-server');
 const fixtures = require('./helpers/fixtures');
 
 let mockServer;
 let app;
 
-before(async () => {
+beforeAll(async () => {
     process.env.ENOM_USER = 'testuser';
     process.env.ENOM_KEY = 'testkey';
 
@@ -19,7 +17,7 @@ before(async () => {
     await app.ready();
 });
 
-after(async () => {
+afterAll(async () => {
     await app.close();
     await mockServer.close();
     delete process.env.ENOM_BASE_URL;
@@ -30,14 +28,14 @@ test('GET /prices returns prices keyed by TLD', async () => {
 
     const response = await app.inject({ method: 'GET', url: '/prices' });
 
-    assert.equal(response.statusCode, 200);
+    expect(response.statusCode).toBe(200);
     const { prices } = JSON.parse(response.body);
 
-    assert.ok(prices['com'], '.com should be present');
-    assert.equal(prices['com'].tld, 'com');
-    assert.equal(prices['com'].registrationPrice, '10.99');
-    assert.equal(prices['com'].renewalPrice, '12.99');
-    assert.equal(prices['com'].transferPrice, '9.99');
+    expect(prices['com']).toBeDefined();
+    expect(prices['com'].tld).toBe('com');
+    expect(prices['com'].registrationPrice).toBe('10.99');
+    expect(prices['com'].renewalPrice).toBe('12.99');
+    expect(prices['com'].transferPrice).toBe('9.99');
 });
 
 test('GET /prices returns 403 on bad credentials', async () => {
@@ -45,7 +43,7 @@ test('GET /prices returns 403 on bad credentials', async () => {
 
     const response = await app.inject({ method: 'GET', url: '/prices' });
 
-    assert.equal(response.statusCode, 403);
+    expect(response.statusCode).toBe(403);
     const body = JSON.parse(response.body);
-    assert.equal(body.error, 'Bad User name or Password');
+    expect(body.error).toBe('Bad User name or Password');
 });

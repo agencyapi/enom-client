@@ -5,7 +5,8 @@
   "main": "enom.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test"
+    "test": "jest",
+    "test:ci": "jest --ci --reporters='default' --reporters='jest-github-actions-reporter'"
   },
   "keywords": [],
   "author": "",
@@ -19,5 +20,10 @@
     "fastify": "^5.8.4",
     "luxon": "^3.7.2",
     "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "jest": "^30.3.0",
+    "jest-circus": "^30.3.0",
+    "jest-github-actions-reporter": "^1.0.3"
   }
 }

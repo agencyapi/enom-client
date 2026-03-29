@@ -1,14 +1,12 @@
 'use strict'
 
-const { test, before, after } = require('node:test');
-const assert = require('node:assert/strict');
 const { createMockServer } = require('./helpers/mock-enom-server');
 const fixtures = require('./helpers/fixtures');
 
 let mockServer;
 let app;
 
-before(async () => {
+beforeAll(async () => {
     process.env.ENOM_USER = 'testuser';
     process.env.ENOM_KEY = 'testkey';
 
@@ -19,7 +17,7 @@ before(async () => {
     await app.ready();
 });
 
-after(async () => {
+afterAll(async () => {
     await app.close();
     await mockServer.close();
     delete process.env.ENOM_BASE_URL;
@@ -30,10 +28,10 @@ test('GET /balance returns numeric balance fields', async () => {
 
     const response = await app.inject({ method: 'GET', url: '/balance' });
 
-    assert.equal(response.statusCode, 200);
+    expect(response.statusCode).toBe(200);
     const body = JSON.parse(response.body);
-    assert.equal(body.balance, 100.50);
-    assert.equal(body.availableBalance, 95.25);
+    expect(body.balance).toBe(100.50);
+    expect(body.availableBalance).toBe(95.25);
 });
 
 test('GET /balance returns 403 on bad credentials', async () => {
@@ -41,7 +39,7 @@ test('GET /balance returns 403 on bad credentials', async () => {
 
     const response = await app.inject({ method: 'GET', url: '/balance' });
 
-    assert.equal(response.statusCode, 403);
+    expect(response.statusCode).toBe(403);
     const body = JSON.parse(response.body);
-    assert.equal(body.error, 'Bad User name or Password');
+    expect(body.error).toBe('Bad User name or Password');
 });

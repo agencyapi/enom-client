@@ -1,14 +1,12 @@
 'use strict'
 
-const { test, before, after } = require('node:test');
-const assert = require('node:assert/strict');
 const { createMockServer } = require('./helpers/mock-enom-server');
 const fixtures = require('./helpers/fixtures');
 
 let mockServer;
 let app;
 
-before(async () => {
+beforeAll(async () => {
     process.env.ENOM_USER = 'testuser';
     process.env.ENOM_KEY = 'testkey';
 
@@ -19,7 +17,7 @@ before(async () => {
     await app.ready();
 });
 
-after(async () => {
+afterAll(async () => {
     await app.close();
     await mockServer.close();
     delete process.env.ENOM_BASE_URL;
@@ -30,19 +28,19 @@ test('GET /domains returns domain list keyed by name', async () => {
 
     const response = await app.inject({ method: 'GET', url: '/domains' });
 
-    assert.equal(response.statusCode, 200);
+    expect(response.statusCode).toBe(200);
     const { domains } = JSON.parse(response.body);
 
-    assert.ok(domains['example.com'], 'example.com should be present');
-    assert.equal(domains['example.com'].name, 'example.com');
-    assert.equal(domains['example.com'].enomId, '123456');
-    assert.equal(domains['example.com'].lockStatus, 'Locked');
-    assert.equal(domains['example.com'].autoRenew, 'Yes');
-    assert.ok(domains['example.com'].expiryDate, 'expiryDate should be present');
+    expect(domains['example.com']).toBeDefined();
+    expect(domains['example.com'].name).toBe('example.com');
+    expect(domains['example.com'].enomId).toBe('123456');
+    expect(domains['example.com'].lockStatus).toBe('Locked');
+    expect(domains['example.com'].autoRenew).toBe('Yes');
+    expect(domains['example.com'].expiryDate).toBeDefined();
 
-    assert.ok(domains['test.org'], 'test.org should be present');
-    assert.equal(domains['test.org'].lockStatus, 'Unlocked');
-    assert.equal(domains['test.org'].autoRenew, 'No');
+    expect(domains['test.org']).toBeDefined();
+    expect(domains['test.org'].lockStatus).toBe('Unlocked');
+    expect(domains['test.org'].autoRenew).toBe('No');
 });
 
 test('GET /domains returns 403 on bad credentials', async () => {
@@ -50,9 +48,9 @@ test('GET /domains returns 403 on bad credentials', async () => {
 
     const response = await app.inject({ method: 'GET', url: '/domains' });
 
-    assert.equal(response.statusCode, 403);
+    expect(response.statusCode).toBe(403);
     const body = JSON.parse(response.body);
-    assert.equal(body.error, 'Bad User name or Password');
+    expect(body.error).toBe('Bad User name or Password');
 });
 
 test('GET /domains returns 403 on IP restriction', async () => {
@@ -60,7 +58,7 @@ test('GET /domains returns 403 on IP restriction', async () => {
 
     const response = await app.inject({ method: 'GET', url: '/domains' });
 
-    assert.equal(response.statusCode, 403);
+    expect(response.statusCode).toBe(403);
     const body = JSON.parse(response.body);
-    assert.match(body.error, /User not permitted from this IP address/);
+    expect(body.error).toMatch(/User not permitted from this IP address/);
 });
