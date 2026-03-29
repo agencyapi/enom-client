@@ -124,6 +124,10 @@ E.balance = function (callback) {
         })
 }
 
+E.prices = function (callback) {
+    this.callApi(con.routes.prices.list, callback)
+}
+
 E.checkLogin = function (callback) {
     axiosInstance
         .get(this.url, {
