@@ -25,11 +25,10 @@ module.exports = async function (fastify) {
                     .type('text/plain; charset=utf-8')
                     .send("OK")
             } else {
-                const errorCode = credentialCache.error?.errorCode ?? 500;
                 return reply
-                    .code(errorCode)
-                    .type('application/json; charset=utf-8')
-                    .send(credentialCache.error)
+                    .code(503)
+                    .type('text/plain; charset=utf-8')
+                    .send("Service unavailable")
             }
         }
 
@@ -56,11 +55,10 @@ module.exports = async function (fastify) {
                 .type('text/plain; charset=utf-8')
                 .send("OK")
         } else {
-            const errorCode = cache.error?.errorCode ?? 500;
             return reply
-                .code(errorCode)
-                .type('application/json; charset=utf-8')
-                .send(cache.error)
+                .code(503)
+                .type('text/plain; charset=utf-8')
+                .send("Service unavailable")
         }
     })
 }

@@ -10,18 +10,11 @@ module.exports = async function (fastify) {
         console.log("Loading account balance")
         enomClient.balance(function (error, data) {
             if (error) {
-                if (typeof error === 'string') {
-                    reply
-                        .code(500)
-                        .type('text/plain; charset=utf-8')
-                        .send(error)
-                } else {
-                    let errorCode = error.errorCode ?? 500;
-                    reply
-                        .code(errorCode)
-                        .type('application/json; charset=utf-8')
-                        .send(error)
-                }
+                const errorCode = error.errorCode ?? 500;
+                reply
+                    .code(errorCode)
+                    .type('text/plain; charset=utf-8')
+                    .send(errorCode === 403 ? "Forbidden" : "Internal server error")
             } else {
                 reply
                     .code(200)
