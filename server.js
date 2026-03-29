@@ -51,6 +51,7 @@ server.setErrorHandler(async (error, request) => {
 server.register(require('./domains.js'));
 server.register(require('./prices.js'));
 server.register(require('./healthcheck.js'));
+server.register(require('./balance.js'));
 
 // graceful shutdown
 const closeListeners = closeWithGrace({ delay: 500 }, async function ({ err }) {

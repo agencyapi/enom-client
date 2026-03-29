@@ -15,7 +15,7 @@ module.exports = async function (fastify) {
                 if (typeof error === 'string') {
                     reply
                         .code(500)
-                        .header('Content-Type', 'application/text; charset=utf-8')
+                        .type('text/plain; charset=utf-8')
                         .send(error)
                 } else {
                     let errorCode = error.errorCode ?? 500;

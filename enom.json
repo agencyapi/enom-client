@@ -20,6 +20,9 @@
     "login": {
       "check": "CheckLogin"
     },
+    "balance": {
+      "get": "GetBalance"
+    },
     "prices": {
       "list": "PE_GetRetailPricing"
     }
