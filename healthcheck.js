@@ -1,18 +1,18 @@
-// Declare a route
+'use strict'
+
 module.exports = async function (fastify) {
     fastify.get('/health', async (request, reply) => {
-        const apiUser = process.env.ENOM_USER;
-        const secretKey = process.env.ENOM_KEY;
+        const {ENOM_USER, ENOM_KEY} = fastify.config;
 
-        if (apiUser && secretKey) {
-            reply
+        if (ENOM_USER && ENOM_KEY) {
+            return reply
                 .code(200)
-                .header('Content-Type', 'application/text; charset=utf-8')
+                .type('text/plain; charset=utf-8')
                 .send("OK")
         } else {
-            reply
+            return reply
                 .code(500)
-                .header('Content-Type', 'application/text; charset=utf-8')
+                .type('text/plain; charset=utf-8')
                 .send("Service is not configured correctly")
         }
     })

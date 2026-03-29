@@ -1,62 +1,89 @@
 'use strict'
-const {log} = require("./logger");
-const server = require('fastify')()
 
-// Require library to exit fastify process, gracefully (if possible)
-const closeWithGrace = require('close-with-grace')
+const { log } = require("./logger");
+const server = require('fastify')({
+    // disable embedded request logging, rely on a custom hook instead
+    disableRequestLogging: true
+});
 
-server.register(require('middie'));
-server.addHook('onRequest', async (req) => {
-    log('info', 'request-incoming', {
-        path: req.url, method: req.method, ip: req.ip,
-        ua: req.headers['user-agent'] || null });
-})
-server.setErrorHandler(async (error, req) => {
-    log('error', 'request-failure', {stack: error.stack,
-        path: req.url, method: req.method, });
-    return { error: error.message };
-})
+// Require library to exit fastify process, gracefully
+const closeWithGrace = require('close-with-grace');
 
-const HOST = process.env.HOST || '127.0.0.1';
-const PORT = process.env.PORT || 4000;
+const fastifyEnv = require('@fastify/env')
 
-console.log(`Starting as pid=${process.pid}`);
-console.log(`Enom API user=${process.env.ENOM_USER}`)
-
-const domainService = require('./domains.js')
-const healthCheckService = require('./healthcheck.js')
-server.register(domainService)
-server.register(healthCheckService)
-
-// delay is the number of milliseconds for the graceful close to finish
-const closeListeners = closeWithGrace({delay: 500}, async function ({err}) {
-    if (err) {
-        log("error", err)
+const schema = {
+    type: 'object',
+    required: ['ENOM_USER', 'ENOM_KEY'],
+    properties: {
+        ENOM_USER: { type: 'string' },
+        ENOM_KEY: { type: 'string' },
+        PORT: { type: 'integer', default: 4000 },
+        HOST: { type: 'string', default: '127.0.0.1' }
     }
-    await server.close()
-})
+}
 
-server.addHook('onClose', async (instance, done) => {
-    closeListeners.uninstall()
-    done()
-})
+server.register(fastifyEnv, {
+    confKey: 'config',
+    schema: schema,
+    dotenv: true
+});
+
+server.register(require('@fastify/middie'));
+
+server.addHook('onRequest', async (request) => {
+    log('info', 'request-incoming', {
+        path: request.url,
+        method: request.method,
+        ip: request.ip,
+        ua: request.headers['user-agent'] || null
+    });
+});
+
+server.setErrorHandler(async (error, request) => {
+    log('error', 'request-failure', {
+        stack: error.stack,
+        path: request.url,
+        method: request.method,
+    });
+    return { error: error.message };
+});
+
+server.register(require('./domains.js'));
+server.register(require('./healthcheck.js'));
+
+// graceful shutdown
+const closeListeners = closeWithGrace({ delay: 500 }, async function ({ err }) {
+    if (err) {
+        log("error", err);
+    }
+    await server.close();
+});
+
+server.addHook('onClose', async () => {
+    closeListeners.uninstall();
+});
 
 // Run the server!
 const start = async () => {
     try {
-        await server.listen(PORT, HOST, (err) => {
-            if (err) {
-                log("error", err)
-            } else {
-            // noinspection HttpUrlsUsage
-                log("info", `Listing at http://${HOST}:${PORT}`);
-            }
-        })
+        await server.ready();
+
+        const { PORT, HOST, ENOM_USER } = server.config;
+
+        console.log(`Starting as pid=${process.pid}`);
+        console.log(`Enom API user=${ENOM_USER}`);
+
+        const address = await server.listen({
+            port: PORT,
+            host: HOST
+        });
+
+        // noinspection HttpUrlsUsage
+        log("info", `Listening at ${address}`);
     } catch (err) {
-        log("error", err)
-        process.exit(1)
+        log("error", err);
+        process.exit(1);
     }
-}
-start().then(() => {
-    // do nothing
-})
+};
+
+void start();

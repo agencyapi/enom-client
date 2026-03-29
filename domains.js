@@ -1,14 +1,14 @@
-// Declare a route
+'use strict'
+
 const {createClient} = require("./enom");
 
 const { DateTime } = require("luxon");
 
 module.exports = async function (fastify) {
     fastify.get('/domains', async (request, reply) => {
-        const apiUser = process.env.ENOM_USER;
-        const secretKey = process.env.ENOM_KEY;
+        const { ENOM_USER, ENOM_KEY } = fastify.config;
 
-        const enomClient = createClient(apiUser, secretKey)
+        const enomClient = createClient(ENOM_USER, ENOM_KEY)
         console.log("Loading the list of registered domains")
         enomClient.domains(function (error, data) {
             if (error) {
@@ -22,7 +22,7 @@ module.exports = async function (fastify) {
                     reply
                         .code(errorCode)
                         .header('Content-Type', 'application/json; charset=utf-8')
-                        .send(JSON.stringify(error))
+                        .send(error)
                 }
             } else {
                 reply
@@ -30,11 +30,13 @@ module.exports = async function (fastify) {
                     .header('Content-Type', 'application/json; charset=utf-8')
                     .send(convertDomains(data))
             }
-        })
+        });
+
+        return reply;
     })
 }
 
-convertDomains = function (data) {
+const convertDomains = function (data) {
     let domains = {}
 
     data['DomainDetail'].forEach(function (item) {
