@@ -29,21 +29,31 @@ This is a thin **Node.js proxy** that translates HTTP requests into Enom Reselle
 GET /domains
   → domains.js (Fastify route plugin)
     → EnomClient.domains() in enom.js
-      → Enom XML API at reseller.enom.com
+      → Enom XML API at reseller.enom.com (GetAllDomains)
     → XML parsed by xml2js
     → Transformed to JSON keyed by domain name
   → { domains: { "example.com": { name, enomId, expiryDate, lockStatus, autoRenew } } }
+
+GET /balance
+  → balance.js → EnomClient.balance() (GetBalance)
+  → { balance: 123.45, availableBalance: 123.45 }
+
+GET /prices
+  → prices.js → EnomClient.prices() (PE_GetRetailPricing)
+  → { prices: { "com": { tld, registrationPrice, renewalPrice, transferPrice } } }
 ```
 
 ### Key files
 
-- **`enom.js`** — `EnomClient` class. `callApi(command, callback)` makes authenticated GET requests to Enom, parses XML, and maps Enom error strings to HTTP status codes (e.g. `"Bad User name or Password"` or `"User not permitted from this IP address"` → 403). Additional errors beyond the first are included as `error2`, `error3`, etc. Exports both `EnomClient` class and a `createClient()` factory.
-- **`enom.json`** — Axios base config and mapping of internal route names (e.g. `domains.list`) to Enom command names (e.g. `GetAllDomains`).
-- **`server.js`** — Fastify server bootstrap: loads and validates env vars via `@fastify/env` (with dotenv support), making them available to all plugins as `fastify.config`. Registers `@fastify/middie` for Express-style middleware, sets up request/error logging hooks, registers route plugins, graceful shutdown via `close-with-grace`.
-- **`domains.js`** — Fastify plugin for `GET /domains`. Reads `ENOM_USER`/`ENOM_KEY` from `fastify.config`, calls `enomClient.domains()`, and converts the XML-derived response to a domain dictionary. Each domain entry includes `name`, `enomId`, `expiryDate`, `lockStatus`, and `autoRenew`. Expiry dates are parsed from the `America/Los_Angeles` timezone using Luxon. Errors are returned as JSON with an `errorCode` field (string errors fall back to 500).
+- **`enom.js`** — `EnomClient` class. `callApi(command, extractor, callback)` makes authenticated GET requests to Enom, parses XML, and maps Enom error strings to HTTP status codes (`"Bad User name or Password"` or `"User not permitted from this IP address"` → 403). The optional `extractor` function transforms the raw `interface-response` before passing it to the callback; omitting it defaults to extracting the command-named element. Error extraction is handled by a standalone `extractErrors()` helper. Also exposes `checkLogin()`. Exports both `EnomClient` class and a `createClient()` factory.
+- **`enom.json`** — Axios base config and mapping of internal route names to Enom command names (`domains.list` → `GetAllDomains`, `balance.get` → `GetBalance`, `prices.list` → `PE_GetRetailPricing`, `login.check` → `CheckLogin`).
+- **`server.js`** — Fastify server bootstrap: loads and validates env vars via `@fastify/env` (with dotenv support), making them available to all plugins as `fastify.config`. Registers `@fastify/middie` for Express-style middleware, sets up request/error logging hooks, registers route plugins (`domains`, `prices`, `healthcheck`, `balance`), graceful shutdown via `close-with-grace`.
+- **`domains.js`** — Fastify plugin for `GET /domains`. Converts the XML-derived response to a domain dictionary keyed by domain name. Each entry includes `name`, `enomId`, `expiryDate`, `lockStatus`, and `autoRenew`. Expiry dates are parsed from the `America/Los_Angeles` timezone using Luxon.
+- **`balance.js`** — Fastify plugin for `GET /balance`. Returns `{ balance, availableBalance }` as floats.
+- **`prices.js`** — Fastify plugin for `GET /prices`. Converts the XML response to a dictionary keyed by TLD, with `registrationPrice`, `renewalPrice`, and `transferPrice` fields.
 - **`healthcheck.js`** — `GET /health` returns 200 if `ENOM_USER` and `ENOM_KEY` are set in `fastify.config`, 500 otherwise.
 - **`logger.js`** — Minimal console logger with level/message/params structure.
 
 ### Async style
 
-Route handlers use `async/await` (Fastify convention). The `EnomClient` layer uses **callbacks** throughout — `callApi` accepts a Node-style `callback(err, result)` and `domains()` follows the same pattern. Route handlers return `reply` after initiating the callback-based call.
+Route handlers use `async/await` (Fastify convention). The `EnomClient` layer uses **callbacks** throughout — `callApi` accepts a Node-style `callback(err, result)` and all method wrappers follow the same pattern. Route handlers return `reply` after initiating the callback-based call.
