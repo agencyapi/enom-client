@@ -88,4 +88,8 @@ const start = async () => {
     }
 };
 
-void start();
+if (require.main === module) {
+    void start();
+}
+
+module.exports = server;

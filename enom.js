@@ -8,7 +8,7 @@ const axiosInstance = axios.create(con.axiosOptions);
 function EnomClient(id, pass) {
     this.id = id
     this.pass = pass
-    this.url = con.axiosOptions.baseurl + con.axiosOptions.url
+    this.url = (process.env.ENOM_BASE_URL || con.axiosOptions.baseurl) + con.axiosOptions.url
     this.axiosOptions = con.axiosOptions
 }
 
