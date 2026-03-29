@@ -33,9 +33,15 @@ test('GET /prices returns prices keyed by TLD', async () => {
 
     expect(prices['com']).toBeDefined();
     expect(prices['com'].tld).toBe('com');
-    expect(prices['com'].registrationPrice).toBe('10.99');
-    expect(prices['com'].renewalPrice).toBe('12.99');
-    expect(prices['com'].transferPrice).toBe('9.99');
+    expect(prices['com'].registrationPrice).toBe('16.24');
+    expect(prices['com'].renewalPrice).toBe('16.24');
+    expect(prices['com'].transferPrice).toBe('16.24');
+
+    expect(prices['net']).toBeDefined();
+    expect(prices['net'].registrationPrice).toBe('18.56');
+
+    expect(prices['org']).toBeDefined();
+    expect(prices['org'].registrationPrice).toBe('18.56');
 });
 
 test('GET /prices returns 403 on bad credentials', async () => {

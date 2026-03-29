@@ -1,5 +1,8 @@
 'use strict'
 
+const fs = require('node:fs');
+const path = require('node:path');
+
 const getAllDomains = `<?xml version="1.0"?>
 <interface-response>
   <ErrCount>0</ErrCount>
@@ -28,27 +31,7 @@ const getBalance = `<?xml version="1.0"?>
   <AvailableBalance>95.25</AvailableBalance>
 </interface-response>`;
 
-const getRetailPricing = `<?xml version="1.0"?>
-<interface-response>
-  <ErrCount>0</ErrCount>
-  <PE_GetRetailPricing>
-    <ProductPrice>
-      <Producttld>com</Producttld>
-      <ProductType>Registration</ProductType>
-      <Price>10.99</Price>
-    </ProductPrice>
-    <ProductPrice>
-      <Producttld>com</Producttld>
-      <ProductType>Renewal</ProductType>
-      <Price>12.99</Price>
-    </ProductPrice>
-    <ProductPrice>
-      <Producttld>com</Producttld>
-      <ProductType>Transfer</ProductType>
-      <Price>9.99</Price>
-    </ProductPrice>
-  </PE_GetRetailPricing>
-</interface-response>`;
+const getRetailPricing = fs.readFileSync(path.join(__dirname, '../prices.xml'), 'utf8');
 
 const errorBadCredentials = `<?xml version="1.0"?>
 <interface-response>

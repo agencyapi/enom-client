@@ -96,7 +96,7 @@ E.balance = function (callback) {
 }
 
 E.prices = function (callback) {
-    this.callApi(con.routes.prices.list, callback)
+    this.callApi(con.routes.prices.list, function(ir) { return ir['pricestructure'][0] }, callback)
 }
 
 E.checkLogin = function (callback) {
