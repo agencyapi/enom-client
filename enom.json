@@ -19,6 +19,9 @@
     },
     "login": {
       "check": "CheckLogin"
+    },
+    "balance": {
+      "get": "GetBalance"
     }
   }
 }

@@ -79,6 +79,51 @@ E.domains = function (callback) {
     this.callApi(con.routes.domains.list, callback)
 }
 
+E.balance = function (callback) {
+    axiosInstance
+        .get(this.url, {
+            params: this.commandParameters(con.routes.balance.get)
+        })
+        .then(response => {
+            const status = response.status
+            if (status !== 200) {
+                console.log(`API HTTP response status code ${status}`)
+                let errors = { "error" : "API call failed", "errorCode" : 500}
+                callback(errors, null)
+                return
+            }
+
+            const data = response.data
+            const parser = new xml2js.Parser();
+            parser.parseString(data, function(err, result){
+                if (err) {
+                    callback(err, null)
+                    return
+                }
+
+                const errorCount = parseInt(result['interface-response']['ErrCount']);
+
+                if (errorCount > 0) {
+                    const errorData = result['interface-response'].errors[0];
+                    const errors = extractErrors(errorData, errorCount)
+                    console.log(`API call returned ${errorCount} errors: ${ JSON.stringify(errors) }`)
+                    callback(errors, null)
+                    return
+                }
+
+                const ir = result['interface-response'];
+                callback(null, {
+                    balance: parseFloat(ir['Balance'][0]),
+                    availableBalance: parseFloat(ir['AvailableBalance'][0])
+                })
+            });
+        })
+        .catch(error => {
+            console.log(error)
+            callback(error, null)
+        })
+}
+
 E.checkLogin = function (callback) {
     axiosInstance
         .get(this.url, {
