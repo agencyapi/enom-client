@@ -44,6 +44,5 @@ test('GET /prices returns 403 on bad credentials', async () => {
     const response = await app.inject({ method: 'GET', url: '/prices' });
 
     expect(response.statusCode).toBe(403);
-    const body = JSON.parse(response.body);
-    expect(body.error).toBe('Bad User name or Password');
+    expect(response.body).toBe('Forbidden');
 });
