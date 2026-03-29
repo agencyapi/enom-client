@@ -1,10 +1,10 @@
-FROM node:16.15.0-alpine3.15 AS deps
+FROM node:22.22.2-alpine3.23 AS deps
 WORKDIR /srv
 COPY package*.json ./
 RUN npm ci --only=production
 
-FROM node:16.15.0-alpine3.15 AS release
-ENV V 16.15.0
+FROM node:22.22.2-alpine3.23 AS release
+ENV V 22.22.2
 ENV FILE node-v$V-linux-x64-musl.tar.xz
 RUN apk add --no-cache libstdc++ \
 && apk add --no-cache --virtual .deps curl \
