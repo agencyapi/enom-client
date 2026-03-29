@@ -16,6 +16,9 @@
   "routes": {
     "domains": {
       "list": "GetAllDomains"
+    },
+    "login": {
+      "check": "CheckLogin"
     }
   }
 }
