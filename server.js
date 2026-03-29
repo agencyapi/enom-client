@@ -49,6 +49,7 @@ server.setErrorHandler(async (error, request) => {
 });
 
 server.register(require('./domains.js'));
+server.register(require('./prices.js'));
 server.register(require('./healthcheck.js'));
 
 // graceful shutdown

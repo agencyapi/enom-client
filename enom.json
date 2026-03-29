@@ -19,6 +19,9 @@
     },
     "login": {
       "check": "CheckLogin"
+    },
+    "prices": {
+      "list": "PE_GetRetailPricing"
     }
   }
 }
