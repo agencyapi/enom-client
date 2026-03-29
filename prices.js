@@ -19,13 +19,13 @@ module.exports = async function (fastify) {
                     let errorCode = error.errorCode ?? 500;
                     reply
                         .code(errorCode)
-                        .header('Content-Type', 'application/json; charset=utf-8')
+                        .type('application/json; charset=utf-8')
                         .send(error)
                 }
             } else {
                 reply
                     .code(200)
-                    .header('Content-Type', 'application/json; charset=utf-8')
+                    .type('application/json; charset=utf-8')
                     .send(convertPrices(data))
             }
         });
