@@ -32,7 +32,15 @@ function extractErrors(errorData, errorCount) {
     return errors
 }
 
-E.callApi = function(command, callback) {
+E.callApi = function(command, extractor, callback) {
+    if (typeof extractor === 'function' && callback === undefined) {
+        // callApi(command, callback) — no extractor provided; default to command-named wrapper
+        callback = extractor
+        extractor = function(ir) { return ir[command][0] }
+    }
+    if (typeof callback !== 'function') {
+        throw new TypeError('callApi: callback must be a function')
+    }
     axiosInstance
         .get(this.url, {
             params: this.commandParameters(command)
@@ -65,12 +73,11 @@ E.callApi = function(command, callback) {
                     return
                 }
 
-                const commandResponse = result['interface-response'][command][0];
-                callback(null, commandResponse)
+                callback(null, extractor(result['interface-response']))
             });
         })
         .catch(error => {
-            console.log(error)
+            console.log(`API call failed: ${error.message}`, { status: error.response?.status })
             callback(error, null)
         })
 }
@@ -80,48 +87,12 @@ E.domains = function (callback) {
 }
 
 E.balance = function (callback) {
-    axiosInstance
-        .get(this.url, {
-            params: this.commandParameters(con.routes.balance.get)
-        })
-        .then(response => {
-            const status = response.status
-            if (status !== 200) {
-                console.log(`API HTTP response status code ${status}`)
-                let errors = { "error" : "API call failed", "errorCode" : 500}
-                callback(errors, null)
-                return
-            }
-
-            const data = response.data
-            const parser = new xml2js.Parser();
-            parser.parseString(data, function(err, result){
-                if (err) {
-                    callback(err, null)
-                    return
-                }
-
-                const errorCount = parseInt(result['interface-response']['ErrCount']);
-
-                if (errorCount > 0) {
-                    const errorData = result['interface-response'].errors[0];
-                    const errors = extractErrors(errorData, errorCount)
-                    console.log(`API call returned ${errorCount} errors: ${ JSON.stringify(errors) }`)
-                    callback(errors, null)
-                    return
-                }
-
-                const ir = result['interface-response'];
-                callback(null, {
-                    balance: parseFloat(ir['Balance'][0]),
-                    availableBalance: parseFloat(ir['AvailableBalance'][0])
-                })
-            });
-        })
-        .catch(error => {
-            console.log(error)
-            callback(error, null)
-        })
+    this.callApi(con.routes.balance.get, function(ir) {
+        return {
+            balance: parseFloat(ir['Balance'][0]),
+            availableBalance: parseFloat(ir['AvailableBalance'][0])
+        }
+    }, callback)
 }
 
 E.prices = function (callback) {
@@ -129,44 +100,7 @@ E.prices = function (callback) {
 }
 
 E.checkLogin = function (callback) {
-    axiosInstance
-        .get(this.url, {
-            params: this.commandParameters(con.routes.login.check)
-        })
-        .then(response => {
-            const status = response.status
-            if (status !== 200) {
-                console.log(`API HTTP response status code ${status}`)
-                let errors = { "error" : "API call failed", "errorCode" : 500}
-                callback(errors, null)
-                return
-            }
-
-            const data = response.data
-            const parser = new xml2js.Parser();
-            parser.parseString(data, function(err, result){
-                if (err) {
-                    callback(err, null)
-                    return
-                }
-
-                const errorCount = parseInt(result['interface-response']['ErrCount']);
-
-                if (errorCount > 0) {
-                    const errorData = result['interface-response'].errors[0];
-                    const errors = extractErrors(errorData, errorCount)
-                    console.log(`API call returned ${errorCount} errors: ${ JSON.stringify(errors) }`)
-                    callback(errors, null)
-                    return
-                }
-
-                callback(null, true)
-            });
-        })
-        .catch(error => {
-            console.log(error)
-            callback(error, null)
-        })
+    this.callApi(con.routes.login.check, function(ir) { return true }, callback)
 }
 
 E.commandParameters = function (command) {
