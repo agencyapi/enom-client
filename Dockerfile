@@ -1,10 +1,14 @@
-FROM node:22.22.2-alpine3.23 AS deps
+ARG NODE_VERSION=22.22.2
+ARG ALPINE_VERSION=3.23
+
+FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS deps
 WORKDIR /srv
 COPY package*.json ./
 RUN npm ci --only=production
 
-FROM node:22.22.2-alpine3.23 AS release
-ENV V 22.22.2
+FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS release
+ARG NODE_VERSION
+ENV V=${NODE_VERSION}
 ENV FILE node-v$V-linux-x64-musl.tar.xz
 RUN apk add --no-cache libstdc++ \
 && apk add --no-cache --virtual .deps curl \
