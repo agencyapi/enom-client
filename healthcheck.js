@@ -8,7 +8,17 @@ let credentialCache = null;
 let checkInFlight = null;
 
 module.exports = async function (fastify) {
-    fastify.get('/health', async (request, reply) => {
+    fastify.get('/health', {
+        schema: {
+            description: 'Health check — verifies Enom credentials are valid',
+            tags: ['health'],
+            response: {
+                200: { type: 'string', description: 'Service is healthy' },
+                500: { type: 'string', description: 'Service misconfigured' },
+                503: { type: 'string', description: 'Service unavailable' }
+            }
+        }
+    }, async (request, reply) => {
         const {ENOM_USER, ENOM_KEY} = fastify.config;
 
         if (!ENOM_USER || !ENOM_KEY) {

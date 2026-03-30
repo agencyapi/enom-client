@@ -5,7 +5,35 @@ const {createClient} = require("./enom");
 const { DateTime } = require("luxon");
 
 module.exports = async function (fastify) {
-    fastify.get('/domains', async (request, reply) => {
+    fastify.get('/domains', {
+        schema: {
+            description: 'Returns all domains registered under the Enom reseller account',
+            tags: ['domains'],
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        domains: {
+                            type: 'object',
+                            description: 'Domain entries keyed by domain name',
+                            additionalProperties: {
+                                type: 'object',
+                                properties: {
+                                    name: { type: 'string' },
+                                    enomId: { type: 'string' },
+                                    expiryDate: { type: 'string' },
+                                    lockStatus: { type: 'string' },
+                                    autoRenew: { type: 'string' }
+                                }
+                            }
+                        }
+                    }
+                },
+                403: { type: 'string', description: 'Forbidden' },
+                500: { type: 'string', description: 'Internal server error' }
+            }
+        }
+    }, async (request, reply) => {
         const { ENOM_USER, ENOM_KEY } = fastify.config;
 
         const enomClient = createClient(ENOM_USER, ENOM_KEY)

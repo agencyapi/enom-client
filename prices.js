@@ -3,7 +3,34 @@
 const {createClient} = require("./enom");
 
 module.exports = async function (fastify) {
-    fastify.get('/prices', async (request, reply) => {
+    fastify.get('/prices', {
+        schema: {
+            description: 'Returns retail pricing for all domain TLDs',
+            tags: ['domains'],
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        prices: {
+                            type: 'object',
+                            description: 'Price entries keyed by TLD',
+                            additionalProperties: {
+                                type: 'object',
+                                properties: {
+                                    tld: { type: 'string' },
+                                    registrationPrice: { type: 'string' },
+                                    renewalPrice: { type: 'string' },
+                                    transferPrice: { type: 'string' }
+                                }
+                            }
+                        }
+                    }
+                },
+                403: { type: 'string', description: 'Forbidden' },
+                500: { type: 'string', description: 'Internal server error' }
+            }
+        }
+    }, async (request, reply) => {
         const { ENOM_USER, ENOM_KEY } = fastify.config;
 
         const enomClient = createClient(ENOM_USER, ENOM_KEY)
