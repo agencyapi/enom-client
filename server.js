@@ -9,7 +9,9 @@ const server = require('fastify')({
 // Require library to exit fastify process, gracefully
 const closeWithGrace = require('close-with-grace');
 
-const fastifyEnv = require('@fastify/env')
+const fastifyEnv = require('@fastify/env');
+const fastifySwagger = require('@fastify/swagger');
+const fastifySwaggerUi = require('@fastify/swagger-ui');
 
 const schema = {
     type: 'object',
@@ -26,6 +28,20 @@ server.register(fastifyEnv, {
     confKey: 'config',
     schema: schema,
     dotenv: true
+});
+
+server.register(fastifySwagger, {
+    openapi: {
+        info: {
+            title: 'AgencyAPI Enom Client',
+            description: 'Proxy API for the Enom domain reseller platform',
+            version: '2.0.0'
+        }
+    }
+});
+
+server.register(fastifySwaggerUi, {
+    routePrefix: '/documentation'
 });
 
 server.register(require('@fastify/middie'));

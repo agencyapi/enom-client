@@ -3,7 +3,23 @@
 const {createClient} = require("./enom");
 
 module.exports = async function (fastify) {
-    fastify.get('/balance', async (request, reply) => {
+    fastify.get('/balance', {
+        schema: {
+            description: 'Returns the current Enom reseller account balance',
+            tags: ['account'],
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        balance: { type: 'number', description: 'Total account balance' },
+                        availableBalance: { type: 'number', description: 'Available (spendable) balance' }
+                    }
+                },
+                403: { type: 'string', description: 'Forbidden' },
+                500: { type: 'string', description: 'Internal server error' }
+            }
+        }
+    }, async (request, reply) => {
         const { ENOM_USER, ENOM_KEY } = fastify.config;
 
         const enomClient = createClient(ENOM_USER, ENOM_KEY)
