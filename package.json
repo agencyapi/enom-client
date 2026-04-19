@@ -14,7 +14,7 @@
   "private": true,
   "dependencies": {
     "@fastify/env": "^6.0.0",
-    "@fastify/middie": "^9.3.1",
+    "@fastify/middie": "^9.3.2",
     "axios": "^1.14.0",
     "close-with-grace": "^2.5.0",
     "fastify": "^5.8.4",
