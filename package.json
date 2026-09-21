@@ -15,7 +15,7 @@
   "dependencies": {
     "@fastify/env": "^6.0.0",
     "@fastify/middie": "^9.3.4",
-    "axios": "^1.14.0",
+    "axios": "^1.20.0",
     "close-with-grace": "^2.5.0",
     "fastify": "^5.8.5",
     "luxon": "^3.7.2",
