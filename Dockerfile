@@ -1,23 +1,9 @@
-ARG NODE_VERSION=22.22.2
-ARG ALPINE_VERSION=3.23
-
-FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS deps
+FROM node:22.23.4-alpine3.23 AS deps
 WORKDIR /srv
 COPY package*.json ./
 RUN npm ci --only=production
 
-FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS release
-ARG NODE_VERSION
-ENV V=${NODE_VERSION}
-ENV FILE node-v$V-linux-x64-musl.tar.xz
-RUN apk add --no-cache libstdc++ \
-&& apk add --no-cache --virtual .deps curl \
-&& curl -fsSLO --compressed \
-"https://unofficial-builds.nodejs.org/download/release/v$V/$FILE" \
-&& tar -xJf $FILE -C /usr/local --strip-components=1 \
-&& rm -f $FILE /usr/local/bin/npm /usr/local/bin/npx \
-&& rm -rf /usr/local/lib/node_modules \
-&& apk del .deps
+FROM node:22.23.4-alpine3.23 AS release
 
 WORKDIR /srv
 COPY --from=deps /srv/node_modules ./node_modules
